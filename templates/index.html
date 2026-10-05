@@ -4,31 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartRoute Hub | Executive Dashboard</title>
-    <!-- Modern Enterprise Dark-Mode CSS Interface Styles Architecture -->
     <style>
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            background: linear-gradient(135deg, #090d16 0%, #111726 100%);
-            color: #f3f4f6;
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            background: linear-gradient(135deg, #090d16 0%, #111726 100%); 
+            color: #f3f4f6; 
             padding: 40px;
             min-height: 100vh;
         }
         .dashboard-container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
         h1, h2 { color: #ffffff; margin-top: 0; font-weight: 600; letter-spacing: -0.5px; }
-       
-        /* Premium Glowing Glass Card Styling Layout */
-        .card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(12px);
-            padding: 25px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        .card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); padding: 25px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .full-width { grid-column: 1 / -1; border-top: 4px solid #3b82f6; }
-       
-        /* Financial Ledger Grid Design with Dynamic Accent Shadows */
         .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
         .metric-box { padding: 20px; border-radius: 12px; text-align: center; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid rgba(255,255,255,0.03); }
         .metric-box:hover { transform: translateY(-3px); }
@@ -36,19 +24,13 @@
         .metric-box.deposits { background: rgba(16, 185, 129, 0.08); border-top: 4px solid #10b981; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1); }
         .metric-box.cash { background: rgba(245, 158, 11, 0.08); border-top: 4px solid #f59e0b; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1); }
         .metric-box p { margin: 8px 0 0 0; font-size: 26px; font-weight: 700; color: #ffffff; }
-       
-        /* Interactive Input Form Refinements */
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-size: 13px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
         input, select { width: 100%; padding: 12px; border-radius: 8px; background-color: #161d30; border: 1px solid #2d3748; color: white; box-sizing: border-box; font-size: 14px; transition: border-color 0.2s; }
         input:focus, select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
-       
-        /* Animated Action Button */
         button { width: 100%; padding: 14px; background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s; font-size: 14px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
         button:hover { opacity: 0.9; }
         button:active { transform: scale(0.98); }
-       
-        /* Interactive Row Record Iterations */
         .appt-row { padding: 18px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; transition: background-color 0.2s; }
         .appt-row:hover { background-color: rgba(255,255,255,0.01); }
         .appt-row:last-child { border-bottom: none; }
@@ -63,11 +45,12 @@
         <div class="card full-width" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px;">
             <div>
                 <h1>⚡ SmartRoute Matrix Dashboard</h1>
-                <p style="margin: 0; color: #9ca3af;">Persistent Enterprise Route Optimization and Cash Management Portal</p>
+                <p style="margin: 0; color: #9ca3af;">Welcome back, <strong style="color: #3b82f6;">{{ user_profile.name }}</strong> | Persistent Multi-Tenant Cloud Portal</p>
             </div>
+            <a href="/logout" style="color: #9ca3af; text-decoration: none; font-size: 14px; padding: 8px 16px; background-color: #161d30; border: 1px solid #2d3748; border-radius: 6px; font-weight: 600;">🔒 Secure Log Out</a>
         </div>
 
-        <!-- LEFT SIDEBAR: WEB ENTRY FORM MODULE -->
+        <!-- LEFT SIDEBAR: FORM -->
         <div class="card">
             <h2>➕ New Client Intake</h2>
             <form action="/add_booking" method="POST">
@@ -81,7 +64,6 @@
                         <option value="haircut">Haircut ($25.00)</option>
                         <option value="blowdry">Blowdry ($10.00)</option>
                         <option value="nails">Nails ($30.00)</option>
-                        <option value="other">Other Service ($50.00 Standard Base)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -96,10 +78,8 @@
             </form>
         </div>
 
-        <!-- RIGHT SIDEBAR: OPERATIONAL DASHBOARD SUMMARY -->
+        <!-- RIGHT SIDEBAR: ITINERARY -->
         <div class="card">
-
-                        <!-- Interactive Fleet Calendar View Switcher Panel -->
             <div style="margin-bottom: 25px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 14px; color: #9ca3af; font-weight: 500;">📅 Active Schedule Date: <strong style="color: #60a5fa;">{{ current_filter_date }}</strong></span>
                 <form action="/" method="GET" style="display: flex; gap: 10px; margin: 0; width: auto;">
@@ -107,30 +87,18 @@
                     <button type="submit" style="padding: 6px 14px; width: auto; background: #1e293b; border: 1px solid #374151; box-shadow: none;">🔄 Change Date</button>
                 </form>
             </div>
-            
-            <h2>📊 Operational Overview & Route Maps</h2>
-           
-            <!-- Dynamic Cash Ledger Metrics Matrix Layout -->
+
+            <h2>📊 Operational Overview</h2>
             <div class="metrics-grid">
-                <div class="metric-box revenue">
-                    <label>Gross Booked Value</label>
-                    <p>${{ total_revenue }}</p>
-                </div>
-                <div class="metric-box deposits">
-                    <label>Stripe Deposits Locked</label>
-                    <p>${{ total_deposits }}</p>
-                </div>
-                <div class="metric-box cash">
-                    <label>Due On Location</label>
-                    <p>${{ cash_owed }}</p>
-                </div>
+                <div class="metric-box revenue"><label>Gross Booked Value</label><p>${{ total_revenue }}</p></div>
+                <div class="metric-box deposits"><label>Stripe Deposits Locked</label><p>${{ total_deposits }}</p></div>
+                <div class="metric-box cash"><label>Due On Location</label><p>${{ cash_owed }}</p></div>
             </div>
 
-            <!-- Dynamic Itinerary Tracker Block -->
             <h2>📋 Automated Operational Itinerary</h2>
             <div style="background-color: #0b0f19; border-radius: 8px; border: 1px solid #1f2937;">
                 {% if not bookings %}
-                    <p style="padding: 20px; text-align: center; color: #6b7280; margin: 0;">📭 Fleet schedule is currently empty. Awaiting web intake entries.</p>
+                    <p style="padding: 20px; text-align: center; color: #6b7280; margin: 0;">📭 Fleet schedule is currently empty.</p>
                 {% else %}
                     {% for appt in bookings %}
                         <div class="appt-row">
@@ -138,20 +106,15 @@
                                 <span style="font-size: 16px; font-weight: bold; color: #ffffff;">👤 Name: {{ appt.name }}</span>
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     <span class="badge">🛠️ {{ appt.service }}</span>
-                                    <!-- Defensive Fallback: If date doesn't exist, show 'No Date Assigned' -->
-                                    <span class="badge" style="background-color: #1e293b; color: #38bdf8; border-color: rgba(56, 189, 248, 0.2);">
-                                        📅 {{ appt.get('date', 'No Date Assigned') }}
-                                    </span>
+                                    <span class="badge" style="background-color: #1e293b; color: #38bdf8; border-color: rgba(56, 189, 248, 0.2);">📅 {{ appt.date }}</span>
                                 </div>
                             </div>
-                            <!-- Flex wrapper to keep metrics and cancel button cleanly lined up -->
                             <div style="display: flex; align-items: center; gap: 20px;">
                                 <div style="text-align: right; font-size: 14px; color: #e5e7eb;">
                                     <div>💵 Cost: <strong>${{ "%.2f"|format(appt.total_cost) }}</strong> <span style="color: #9ca3af; font-size: 12px;">(Dep: ${{ "%.2f"|format(appt.deposit_required) }})</span></div>
                                     <div style="color: #60a5fa; margin-top: 4px;">🚗 Transit: <strong>{{ appt.drive_time }} mins</strong> ({{ appt.distance }} mi)</div>
                                 </div>
-                                <!-- NEW WEB DELETE TRIGGER UTILITY LINK -->
-                                <a href="/delete_booking/{{ loop.index0 }}" style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 6px 12px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 13px; transition: 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">❌ Cancel</a>
+                                <a href="/delete_booking/{{ loop.index0 }}" style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 6px 12px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 13px;">❌ Cancel</a>
                             </div>
                         </div>
                     {% endfor %}
@@ -159,6 +122,5 @@
             </div>
         </div>
     </div>
-
 </body>
 </html>

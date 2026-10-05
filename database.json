@@ -1,18 +1,1 @@
-[
-    {
-        "name": "gre",
-        "service": "haircut",
-        "distance": 3.0,
-        "total_cost": 25.0,
-        "deposit_required": 5.0,
-        "date": "2026-10-20"
-    },
-    {
-        "name": ";;",
-        "service": "other",
-        "distance": 3.0,
-        "total_cost": 50.0,
-        "deposit_required": 10.0,
-        "date": "2026-10-21"
-    }
-]
+[]

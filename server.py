@@ -1,187 +1,236 @@
-# --- Mobile Booking & Smart Routing Server Engine ---
-from flask import Flask, render_template, request, redirect
+# --- SmartRoute SaaS Multi-Tenant Server Engine ---
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import date as dt_date
 import json
+import stripe
+import os
 
 app = Flask(__name__)
 
-# 1. FIXED PRICE MATRIX RATE CARD
+# 🔐 CLOUD APP SECURITY LAYER CONFIGURATIONS
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super-secure-dev-fallback-string")
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+# 1. CORE ENTERPRISE SESSION MANAGER INITIALIZATION
+login_manager = LoginManager()
+login_manager.login_view = 'login'  # If a user isn't logged in, redirect them here
+login_manager.init_app(app)
+
+# 2. STANDARDIZED PRICE MATRIX RATE CARD
 PRICE_MATRIX = {
     "haircut": 25.00,
     "blowdry": 10.00,
     "nails": 30.00
 }
 
-# 2. TRANSIT LOGIC OPTIMIZATION ENGINE
+# 3. TRANSIT LOGIC OPTIMIZATION ENGINE
 def calculate_travel_time(miles):
     average_speed_mph = 30
     minutes_per_mile = 60 / average_speed_mph
     return round(miles * minutes_per_mile, 1)
 
-# 3. HELPER FUNCTIONS: FILE PERSISTENCE CONTROL PIPELINES
-def load_database():
+# 4. MULTI-TENANT SECURE STORAGE DATABASES PIPELINES
+def load_file_db(filename):
     try:
-        with open("database.json", "r") as file_box:
-            return json.load(file_box)
+        with open(filename, "r") as f:
+            return json.load(f)
     except FileNotFoundError:
-        return []
+        return {} if filename == "users.json" else []
 
-def save_database(data):
-    with open("database.json", "w") as file_box:
-        json.dump(data, file_box, indent=4)
+def save_file_db(filename, data):
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=4)
 
-# 4. TWILIO SMS GATEWAY NOTIFICATION SIMULATOR
-def simulate_sms_notification(action_type, booking_profile):
-    client = booking_profile['name']
-    service = booking_profile['service']
-    distance = booking_profile['distance']
-    deposit = booking_profile['deposit_required']
-   
-    print("\n📱 === TWILIO SMS GATEWAY OUTBOUND OUTBOX ===")
-   
-    if action_type == "NEW_BOOKING":
-        print(f"✉️ [To Client {client}]: Booking confirmed! Your 20% non-refundable deposit of ${deposit:.2f} has been secured via Stripe.")
-        print(f"✉️ [To Business Owner]: New job added! {client} requested {service}. Drive is {distance} miles away. Check your SmartRoute Hub for optimization paths.")
-       
-    elif action_type == "CANCEL_BOOKING":
-        print(f"✉️ [To Client {client}]: Your appointment for {service} has been successfully canceled. Your deposit of ${deposit:.2f} has been logged under cancellation parameters.")
-        print(f"✉️ [To Business Owner]: Alert! {client} canceled their appointment for {service}. Slot has been opened back up in the database.")
-       
-    print("============================================\n")
+# 5. USER SESSION DATA ENCAPSULATION WRAPPER
+class User(UserMixin):
+    def __init__(self, id, name, email):
+        self.id = id
+        self.name = name
+        self.email = email
+
+@login_manager.user_loader
+def load_user(user_id):
+    users = load_file_db("users.json")
+    if user_id in users:
+        return User(user_id, users[user_id]["name"], users[user_id]["email"])
+    return None
 
 
-# --- APPLICATION WEB ROUTES ---
+# --- APPLICATION WEB ROUTES (AUTHENTICATION ENGINE) ---
 
-# ROUTE 1: DISPLAY THE MAIN DARK DASHBOARD
-from datetime import date as dt_date # Make sure this import is near the top or inside the route
+# REGISTRATION GATE: ACCOUNT DEPLOYMENT PIPELINE
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email").lower().strip()
+        raw_password = request.form.get("password")
+        
+        users = load_file_db("users.json")
+        
+        if email in [u["email"] for u in users.values()]:
+            return "⚠️ This business email is already registered."
+            
+        # Securely encrypt password string using corporate hashing standards
+        hashed_password = generate_password_hash(raw_password)
+        new_user_id = str(len(users) + 1)
+        
+        users[new_user_id] = {
+            "name": name,
+            "email": email,
+            "password": hashed_password
+        }
+        save_file_db("users.json", users)
+        
+        # Log the newly registered business owner in automatically
+        user_obj = User(new_user_id, name, email)
+        login_user(user_obj)
+        return redirect(url_for("dashboard"))
+        
+    return render_template("signup.html")
 
+# ACCESS GATE: SECURE LOG IN PANEL
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email").lower().strip()
+        password = request.form.get("password")
+        
+        users = load_file_db("users.json")
+        
+        # Validate email existence and verify encrypted password hashes match
+        for uid, udata in users.items():
+            if udata["email"] == email and check_password_hash(udata["password"], password):
+                user_obj = User(uid, udata["name"], udata["email"])
+                login_user(user_obj)
+                return redirect(url_for("dashboard"))
+                
+        return "⚠️ Invalid business credentials provided."
+    return render_template("login.html")
+
+# EXIT GATE: TERMINATE SESSION TIMELINES
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
+
+# --- CORE OPERATIONAL APPLICATION BUSINESS ROUTES ---
+
+# ROUTE 1: THE ACTIVE DATA-FILTERED DASHBOARD OVERVIEW
 @app.route("/")
+@login_required # This makes the dashboard locked behind a login screen!
 def dashboard():
-    active_bookings = load_database()
-   
-    # 1. Detect the requested date from the URL parameter.
-    # If no parameter is passed, default automatically to today's date!
+    all_bookings = load_file_db("database.json")
+    
     today_str = dt_date.today().strftime("%Y-%m-%d")
     selected_filter_date = request.args.get("filter_date", today_str)
-   
+    
     filtered_bookings = []
     revenue = 0.0
     deposits = 0.0
-   
-    # 2. Filter loop matrix: Only pull entries matching the active selected date
-    for appt in active_bookings:
-        if appt.get("date") == selected_filter_date:
+    
+    # ISOLATION ENGINE: Only pull appointments owned by the CURRENT logged-in user ID
+    for appt in all_bookings:
+        if appt.get("user_id") == current_user.id and appt.get("date") == selected_filter_date:
             cost = appt.get("total_cost", 50.00)
             dep = appt.get("deposit_required", 10.00)
-           
+            
             revenue += cost
             deposits += dep
-           
+            
             appt["drive_time"] = calculate_travel_time(appt["distance"])
             filtered_bookings.append(appt)
 
-    # 3. Pass both the filtered appointments AND the current active date back to HTML
     return render_template(
-        "index.html",
-        bookings=filtered_bookings,
+        "index.html", 
+        bookings=filtered_bookings, 
         current_filter_date=selected_filter_date,
-        total_revenue=f"{revenue:.2f}",
+        total_revenue=f"{revenue:.2f}", 
         total_deposits=f"{deposits:.2f}",
-        cash_owed=f"{(revenue - deposits):.2f}"
-    )
-   
-    # Process each client profile to inject dynamic transit calculations
-    for appt in active_bookings:
-        cost = appt.get("total_cost", 50.00)
-        dep = appt.get("deposit_required", 10.00)
-       
-        revenue += cost
-        deposits += dep
-       
-        # Inject temporary runtime variable for the HTML template engine loop to render
-        appt["drive_time"] = calculate_travel_time(appt["distance"])
-
-    return render_template(
-        "index.html",
-        bookings=active_bookings,
-        total_revenue=f"{revenue:.2f}",
-        total_deposits=f"{deposits:.2f}",
-        cash_owed=f"{(revenue - deposits):.2f}"
+        cash_owed=f"{(revenue - deposits):.2f}",
+        user_profile=current_user # Pass the owner name up to display on screen
     )
 
-
-# ROUTE 2: CATCH FORM DATA SUBMISSIONS FROM THE BROWSER PORTAL
+# ROUTE 2: INITIALIZE STRIPE CHECKOUT SECURE SESSION
 @app.route("/add_booking", methods=["POST"])
+@login_required
 def add_booking():
     client_name = request.form.get("name")
     selected_service = request.form.get("service")
     client_distance = float(request.form.get("distance"))
-    # NEW: Grab the incoming browser calendar date string selection
     selected_date = request.form.get("booking_date")
-   
+    
     total_cost = PRICE_MATRIX.get(selected_service, 50.00)
     deposit_required = total_cost * 0.20
-   
+    deposit_in_cents = int(deposit_required * 100)
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f"20% Secure Deposit for {selected_service.capitalize()}",
+                        'description': f"Client Intake Profile: {client_name}",
+                    },
+                    'unit_amount': deposit_in_cents,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            # Pass our active user_id inside the stripe URL payload parameter to keep track of ownership!
+            success_url=f"https://onrender.com{client_name}&service={selected_service}&distance={client_distance}&date={selected_date}&cost={total_cost}&dep={deposit_required}&owner={current_user.id}",
+            cancel_url="https://onrender.com"
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        print(f"⚠️ Stripe API Session Creation Failed: {str(e)}")
+        return redirect(url_for("dashboard"))
+
+# ROUTE 3: SECURE DEPOSIT CONFIRMATION PIPELINE (RUNS ONLY AFTER PAYMENT SUCCEEDS)
+@app.route("/payment_success")
+def payment_success():
+    client_name = request.args.get("name")
+    selected_service = request.args.get("service")
+    client_distance = float(request.args.get("distance"))
+    selected_date = request.args.get("date")
+    total_cost = float(request.args.get("cost"))
+    deposit_required = float(request.args.get("dep"))
+    owner_id = request.args.get("owner") # Extract who owns this booking asset entry
+
     new_booking = {
+        "user_id": owner_id, # Pin the specific subscriber ID to this record permanently!
         "name": client_name,
         "service": selected_service,
         "distance": client_distance,
         "total_cost": total_cost,
         "deposit_required": deposit_required,
-        "date": selected_date # NEW: Link data into database profile dictionary
+        "date": selected_date
     }
-   
-    current_schedule = load_database()
-    current_schedule.append(new_booking)
-    save_database(current_schedule)
-   
-    simulate_sms_notification("NEW_BOOKING", new_booking)
-    return redirect("/")
-   
-    # Process financial algorithm equations
-    total_cost = PRICE_MATRIX.get(selected_service, 50.00)
-    deposit_required = total_cost * 0.20
-   
-    # Package into a distinct data object profile
-    new_booking = {
-        "name": client_name,
-        "service": selected_service,
-        "distance": client_distance,
-        "total_cost": total_cost,
-        "deposit_required": deposit_required
-    }
-   
-    # Update local disk state
-    current_schedule = load_database()
-    current_schedule.append(new_booking)
-    save_database(current_schedule)
-   
-    # Trigger our outbound booking text alert simulator
-    simulate_sms_notification("NEW_BOOKING", new_booking)
-   
-    # Cleanly refresh browser back to standard endpoint view
-    return redirect("/")
 
+    all_bookings = load_file_db("database.json")
+    all_bookings.append(new_booking)
+    save_file_db("database.json", all_bookings)
 
-# ROUTE 3: WEB SURGICAL WIPE ENGINE (CANCELLATIONS WITH UNIFIED NOTIFICATIONS)
+    return redirect(url_for("dashboard"))
+
+# ROUTE 4: WEB SURGICAL WIPE ENGINE (CANCELLATIONS WITH ID SAFEGUARDS)
 @app.route("/delete_booking/<int:booking_index>")
+@login_required
 def delete_booking(booking_index):
-    current_schedule = load_database()
-   
-    # Structural safety optimization check: verify location index boundaries
-    if 0 <= booking_index < len(current_schedule):
-        # 1. First, pop the profile from the array list and hold it in a box
-        removed_client_profile = current_schedule.pop(booking_index)
-       
-        # 2. Update local disk state memory files
-        save_database(current_schedule)
-        print(f" Wiped out database record index row for: {removed_client_profile['name']}")
-       
-        # 3. NOW trigger the notification simulator passing our isolated profile box!
-        simulate_sms_notification("CANCEL_BOOKING", removed_client_profile)
-       
-    return redirect("/")
-
+    all_bookings = load_file_db("database.json")
+    
+    if 0 <= booking_index < len(all_bookings):
+        # Verification check: Make sure a malicious client isn't trying to delete another user's rows!
+        if all_bookings[booking_index].get("user_id") == current_user.id:
+            all_bookings.pop(booking_index)
+            save_file_db("database.json", all_bookings)
+            
+    return redirect(url_for("dashboard"))
 
 if __name__ == "__main__":
-    # Start persistent server engine context layer
     app.run(debug=True)
