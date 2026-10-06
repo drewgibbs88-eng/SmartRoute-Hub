@@ -41,14 +41,17 @@
 <body>
 
     <div class="dashboard-container">
-        <!-- Master Header Block -->
-        <div class="card full-width" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px;">
-            <div>
-                <h1>⚡ SmartRoute Matrix Dashboard</h1>
-                <p style="margin: 0; color: #9ca3af;">Welcome back, <strong style="color: #3b82f6;">{{ user_profile.name }}</strong> | Persistent Multi-Tenant Cloud Portal</p>
-            </div>
+<!-- Master Header Block -->
+    <div class="card full-width" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px;">
+        <div>
+            <h1>⚡ SmartRoute Matrix Dashboard</h1>
+            <p style="margin: 0; color: #9ca3af;">Welcome back, <strong style="color: #3b82f6;">{{ user_profile.name }}</strong> | Persistent Multi-Tenant Cloud Portal</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="/financials" style="color: #34d399; text-decoration: none; font-size: 14px; padding: 8px 16px; background-color: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.2); border-radius: 6px; font-weight: 600;">📈 Financials & P&L</a>
             <a href="/logout" style="color: #9ca3af; text-decoration: none; font-size: 14px; padding: 8px 16px; background-color: #161d30; border: 1px solid #2d3748; border-radius: 6px; font-weight: 600;">🔒 Secure Log Out</a>
         </div>
+    </div>
 
         <!-- LEFT SIDEBAR: FORM -->
         <div class="card">
@@ -114,7 +117,7 @@
                                     <div>💵 Cost: <strong>${{ "%.2f"|format(appt.total_cost) }}</strong> <span style="color: #9ca3af; font-size: 12px;">(Dep: ${{ "%.2f"|format(appt.deposit_required) }})</span></div>
                                     <div style="color: #60a5fa; margin-top: 4px;">🚗 Transit: <strong>{{ appt.drive_time }} mins</strong> ({{ appt.distance }} mi)</div>
                                 </div>
-                                <a href="/delete_booking/{{ loop.index0 }}" style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 6px 12px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 13px;">❌ Cancel</a>
+                                <a href="/delete_booking/{{ appt.id }}" style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 6px 12px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 13px;">❌ Cancel</a>
                             </div>
                         </div>
                     {% endfor %}

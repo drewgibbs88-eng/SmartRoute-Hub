@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartRoute Hub | Optimize Fleet Operations & Secure Deposits</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            background: linear-gradient(135deg, #090d16 0%, #111726 100%); 
+            color: #f3f4f6; 
+            min-height: 100vh;
+        }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(17, 24, 39, 0.5); backdrop-filter: blur(12px); }
+        .logo { font-size: 20px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px; }
+        .nav-btn { text-decoration: none; color: #f3f4f6; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px; border: 1px solid #2d3748; background-color: #161d30; transition: 0.2s; }
+        .nav-btn:hover { border-color: #3b82f6; }
+        .nav-btn.primary { background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .nav-btn.primary:hover { opacity: 0.9; }
+
+        /* Hero Section Display */
+        .hero { max-width: 900px; margin: 80px auto 40px auto; text-align: center; padding: 0 20px; }
+        .hero h1 { font-size: 48px; font-weight: 800; color: #ffffff; line-height: 1.1; margin-bottom: 20px; letter-spacing: -1px; }
+        .hero h1 span { background: linear-gradient(90deg, #60a5fa 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 18px; color: #9ca3af; line-height: 1.6; max-width: 650px; margin: 0 auto 30px auto; }
+        
+        /* Features Matrix Grid layout */
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1100px; margin: 60px auto; padding: 0 20px; }
+        .feature-card { background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .feature-card h3 { color: #ffffff; font-size: 20px; margin-top: 0; margin-bottom: 12px; }
+        .feature-card p { color: #9ca3af; font-size: 14px; line-height: 1.6; margin: 0; }
+        .icon-badge { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 10px; font-size: 20px; margin-bottom: 20px; }
+        .icon-badge.blue { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); }
+        .icon-badge.green { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .icon-badge.orange { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); }
+
+        /* Pricing Card Strategy */
+        .pricing-section { max-width: 450px; margin: 80px auto; padding: 0 20px; text-align: center; }
+        .pricing-card { background: linear-gradient(180deg, rgba(23, 37, 84, 0.4) 0%, rgba(17, 24, 39, 0.7) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 20px; padding: 40px; box-shadow: 0 15px 40px rgba(0,0,0,0.4); text-align: center; position: relative; }
+        .pricing-card .popular-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: #3b82f6; color: white; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; }
+        .price { font-size: 44px; font-weight: 800; color: white; margin: 20px 0 10px 0; }
+        .price span { font-size: 16px; color: #9ca3af; font-weight: 400; }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar Layout -->
+    <div class="navbar">
+        <div class="logo">⚡ SmartRoute Hub</div>
+        <div style="display: flex; gap: 15px;">
+            <a href="/login" class="nav-btn">Secure Log In</a>
+            <a href="/signup" class="nav-btn primary">Register Agency</a>
+        </div>
+    </div>
+
+    <!-- Main Hero Hook Layout Section -->
+    <div class="hero">
+        <h1>Stop Wasting Drive Time.<br>Start <span>Locking In Revenue.</span></h1>
+        <p>The ultimate multi-tenant transit optimization and secure Stripe deposit matrix engineered explicitly for mobile service agencies and freelance service professionals.</p>
+        <a href="/signup" class="nav-btn primary" style="font-size: 16px; padding: 14px 32px;">Deploy Your Hub Account Now</a>
+    </div>
+
+    <!-- Product Features Matrix Grid Layout Section -->
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="icon-badge blue">🚗</div>
+            <h3>Smart Routing Engine</h3>
+            <p>Automatically calculates optimal transit velocity durations based on client location mileage coordinates to maximize daily service frequency schedules.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon-badge green">💳</div>
+            <h3>Stripe Deposit Matrix</h3>
+            <p>Bypasses billing cancellations by automatically triggering non-refundable 20% credit card booking deposits via direct Stripe financial API tunnels.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon-badge orange">📊</div>
+            <h3>Cash Flow Ledger</h3>
+            <p>Aggregates gross value structures, monitors deposits secured in transit, and estimates exact remaining balances due on-location for real-time finance visibility.</p>
+        </div>
+    </div>
+
+    <!-- Agency Subscription Pricing Section -->
+    <div class="pricing-section">
+        <h2>Simple Enterprise Pricing</h2>
+        <p style="font-size: 14px; margin-bottom: 30px;">Get absolute access to your completely dedicated multi-user operational portal seat layer.</p>
+        <div class="pricing-card">
+            <div class="popular-badge">Agency Pro</div>
+            <h3 style="margin: 0; color: #9ca3af;">Unlimited Bookings</h3>
+            <div class="price">$49<span>/month</span></div>
+            <p style="font-size: 13px; color: #9ca3af; margin-bottom: 25px;">Includes full route optimization tracking engines, automated calendar data filtering, and secure Stripe web integrations.</p>
+            <a href="/signup" class="nav-btn primary" style="display: block; padding: 12px 0;">Start Your Free Trial</a>
+        </div>
+    </div>
+
+</body>
+</html>

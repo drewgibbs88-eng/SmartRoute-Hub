@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartRoute Hub - Financial Spot Check</title>
+    <style>
+        body { background: #0b0f19; color: white; font-family: sans-serif; margin: 0; padding: 40px; }
+        .dashboard-container { max-width: 900px; margin: 0 auto; }
+        .card { background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; }
+        .metric-box { background: #161d30; padding: 20px; border-radius: 12px; border: 1px solid #2d3748; text-align: center; }
+        .metric-box label { font-size: 13px; color: #9ca3af; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .metric-box p { font-size: 26px; font-weight: bold; color: #ffffff; margin: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 13px; color: #9ca3af; margin-bottom: 6px; }
+        input { width: 100%; padding: 12px; background: #161d30; border: 1px solid #2d3748; color: white; border-radius: 8px; box-sizing: border-box; }
+        button { padding: 12px 24px; background: #3b82f6; border: none; color: white; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .nav-btn { color: #9ca3af; text-decoration: none; font-size: 14px; padding: 8px 16px; background-color: #161d30; border: 1px solid #2d3748; border-radius: 6px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Top Nav -->
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px;">
+            <div>
+                <h1 style="margin: 0; font-size: 22px;">📈 Financial Spot Check & P&L</h1>
+                <p style="margin: 5px 0 0 0; color: #9ca3af; font-size: 13px;">Enterprise Ledger for {{ user_profile.name }}</p>
+            </div>
+            <a href="/" class="nav-btn">📊 Back to Dashboard</a>
+        </div>
+
+        <!-- Main Ledger Card -->
+        <div class="card">
+            <h2>Time-Based Revenue Breakdown</h2>
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <label>Today's Gross</label>
+                    <p>${{ daily }}</p>
+                </div>
+                <div class="metric-box">
+                    <label>Month-to-Date Gross</label>
+                    <p>${{ monthly }}</p>
+                </div>
+                <div class="metric-box">
+                    <label>Annual Gross</label>
+                    <p>${{ annual }}</p>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 35px;">Expense & Overhead Ledger</h2>
+            <form action="/financials" method="POST" style="display: flex; gap: 15px; align-items: flex-end;">
+                <div class="form-group" style="flex: 1; margin: 0;">
+                    <label for="cogs">Monthly COGS (Supplies/Fuel)</label>
+                    <input type="number" step="0.01" id="cogs" name="cogs" placeholder="e.g. 150.00" value="{{ cogs }}">
+                </div>
+                <div class="form-group" style="flex: 1; margin: 0;">
+                    <label for="overhead">Monthly Overhead (Insurance/Software)</label>
+                    <input type="number" step="0.01" id="overhead" name="overhead" placeholder="e.g. 300.00" value="{{ overhead }}">
+                </div>
+                <button type="submit">🧮 Calculate Net Profit</button>
+            </form>
+
+            <!-- Final Profit Output -->
+            <div style="margin-top: 30px; padding: 25px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 12px; text-align: center;">
+                <h3 style="margin: 0; color: #10b981; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;">Realized Monthly Net Profit</h3>
+                <p style="font-size: 38px; font-weight: bold; color: white; margin: 10px 0 0 0;">${{ net_profit }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
