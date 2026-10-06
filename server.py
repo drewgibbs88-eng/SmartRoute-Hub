@@ -84,11 +84,11 @@ def signup():
         email = request.form.get("email").lower().strip()
         raw_password = request.form.get("password")
         
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = db.session.execute(db.select(User).filter_by(email=email)).scalar_one_or_none()
         if existing_user:
             return "⚠️ This business email is already registered."
             
-        user_count = User.query.count()
+        user_count = db.session.query(User).count()
         assigned_fee = 50 if user_count < 10 else 100 # Founder's Club 50p fee for first 10 users
 
         hashed_password = generate_password_hash(raw_password)
@@ -108,7 +108,7 @@ def login():
         email = request.form.get("email").lower().strip()
         password = request.form.get("password")
         
-        user = User.query.filter_by(email=email).first()
+        user = db.session.execute(db.select(User).filter_by(email=email)).scalar_one_or_none()
         if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("dashboard"))
@@ -245,6 +245,7 @@ def delete_booking(booking_uuid):
         db.session.commit()
     return redirect(url_for("dashboard"))
 
+### ROUTE: LIVE FINANCIAL SPOT CHECK & P&L
 @app.route("/financials", methods=["GET", "POST"])
 @login_required
 def financials():
