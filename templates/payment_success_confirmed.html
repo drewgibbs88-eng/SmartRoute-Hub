@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Confirmed!</title>
+    <style>
+        body { background: #0b0f19; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: rgba(17, 24, 39, 0.85); padding: 40px; border-radius: 16px; border: 1px solid rgba(16, 185, 129, 0.2); width: 100%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        h1 { color: #10b981; margin-top: 0; font-size: 26px; }
+        p { color: #9ca3af; font-size: 15px; line-height: 1.5; margin-bottom: 30px; }
+        a { display: inline-block; padding: 12px 24px; background: #3b82f6; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🎉 Booking Confirmed!</h1>
+        <p>Your 20% deposit has been processed successfully through Stripe, and your appointment has been locked into the dispatcher schedule.</p>
+        <a href="/book/{{ business_id }}">Book Another Appointment</a>
+    </div>
+</body>
+</html>

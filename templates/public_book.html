@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Appointment | {{ business.name }}</title>
+    <style>
+        body { background: #0b0f19; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: rgba(17, 24, 39, 0.85); padding: 35px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 420px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        h2 { margin-top: 0; color: #60a5fa; font-size: 24px; }
+        p { color: #9ca3af; font-size: 14px; margin-bottom: 25px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; color: #9ca3af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 12px; background: #161d30; border: 1px solid #2d3748; color: white; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 14px; background: #3b82f6; border: none; color: white; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px; transition: background 0.2s; }
+        button:hover { background: #2563eb; }
+        .secure-badge { text-align: center; margin-top: 20px; font-size: 12px; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>⚡ Book with {{ business.name }}</h2>
+        <p>Select your required service and date below. A secure 20% deposit is required via Stripe to confirm your appointment.</p>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Your Full Name</label>
+                <input type="text" id="name" name="name" placeholder="e.g. Sarah Jenkins" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="service">Select Service</label>
+                <select id="service" name="service" required>
+                    <option value="haircut">Haircut (£25.00)</option>
+                    <option value="blowdry">Blowdry (£10.00)</option>
+                    <option value="nails">Nails (£30.00)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="distance">Your Distance (Miles)</label>
+                <input type="number" step="0.1" id="distance" name="distance" placeholder="e.g. 5.0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="booking_date">Appointment Date</label>
+                <input type="date" id="booking_date" name="booking_date" required>
+            </div>
+            
+            <button type="submit">🔒 Pay Deposit & Book Appointment</button>
+        </form>
+        
+        <div class="secure-badge">
+            🔒 Secured by Stripe 256-Bit SSL Encryption
+        </div>
+    </div>
+</body>
+</html>

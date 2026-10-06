@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 ### 🔐 CLOUD APP SECURITY LAYER CONFIGURATIONS
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super-secure-dev-fallback-string")
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_51...") # Replace with your test key if using env vars
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
 ### DATABASE CONFIGURATION (Render PostgreSQL or Local SQLite)
 database_url = os.environ.get("DATABASE_URL", "sqlite:///smartroute.db")
@@ -50,7 +50,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    platform_fee_pence = db.Column(db.Integer, default=100) # Founder's Club 50p or standard £1.00 fee
+    platform_fee_pence = db.Column(db.Integer, default=100) # Founder's Club 50p or standard £1.00 fee[cite: 1]
     
     bookings = db.relationship('Booking', backref='owner', lazy=True, cascade="all, delete-orphan")
 
@@ -89,7 +89,7 @@ def signup():
             return "⚠️ This business email is already registered."
             
         user_count = db.session.query(User).count()
-        assigned_fee = 50 if user_count < 10 else 100 # Founder's Club 50p fee for first 10 users
+        assigned_fee = 50 if user_count < 10 else 100 # Founder's Club 50p fee for first 10 users[cite: 1]
 
         hashed_password = generate_password_hash(raw_password)
         new_user = User(name=name, email=email, password=hashed_password, platform_fee_pence=assigned_fee)
@@ -163,6 +163,94 @@ def dashboard():
         user_profile=current_user
     )
 
+### --- PUBLIC CLIENT BOOKING PAGES (NEW) ---
+
+@app.route("/book/<int:business_id>", methods=["GET"])
+def public_booking(business_id):
+    business = db.session.get(User, business_id)
+    if not business:
+        return "⚠️ Business booking page not found.", 404
+    return render_template("public_book.html", business=business)
+
+@app.route("/book/<int:business_id>", methods=["POST"])
+def submit_public_booking(business_id):
+    business = db.session.get(User, business_id)
+    if not business:
+        return "⚠️ Business not found.", 404
+
+    client_name = request.form.get("name")
+    selected_service = request.form.get("service")
+    client_distance = float(request.form.get("distance"))
+    selected_date = request.form.get("booking_date")
+    
+    total_cost = PRICE_MATRIX.get(selected_service, 50.00)
+    deposit_required = total_cost * 0.20
+    deposit_in_cents = int(deposit_required * 100)
+    platform_fee_in_pence = business.platform_fee_pence
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'gbp',
+                        'product_data': {
+                            'name': f"20% Secure Deposit for {selected_service.capitalize()}",
+                            'description': f"Client: {client_name} (Booked with {business.name})",
+                        },
+                        'unit_amount': deposit_in_cents,
+                    },
+                    'quantity': 1,
+                },
+                {
+                    'price_data': {
+                        'currency': 'gbp',
+                        'product_data': {
+                            'name': "SmartRoute Secure Booking Fee",
+                        },
+                        'unit_amount': platform_fee_in_pence,
+                    },
+                    'quantity': 1,
+                }
+            ],
+            mode='payment',
+            success_url=url_for(
+                'public_payment_success', 
+                owner=business.id,
+                name=client_name, 
+                service=selected_service, 
+                distance=client_distance, 
+                date=selected_date, 
+                cost=total_cost, 
+                dep=deposit_required, 
+                _external=True
+            ),
+            cancel_url=url_for('public_booking', business_id=business.id, _external=True)
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        print(f"⚠️ Stripe Public Checkout Session Failed: {str(e)}")
+        return redirect(url_for('public_booking', business_id=business.id))
+
+@app.route("/public_payment_success")
+def public_payment_success():
+    owner_id = request.args.get("owner")
+    new_booking = Booking(
+        user_id=owner_id,
+        booking_uuid=uuid.uuid4().hex[:8],
+        name=request.args.get("name"),
+        service=request.args.get("service"),
+        distance=float(request.args.get("distance")),
+        total_cost=float(request.args.get("cost")),
+        deposit_required=float(request.args.get("dep")),
+        date=request.args.get("date")
+    )
+    db.session.add(new_booking)
+    db.session.commit()
+    return render_template("payment_success_confirmed.html", business_id=owner_id)
+
+### --- INTERNAL DASHBOARD BOOKING ROUTES ---
+
 @app.route("/add_booking", methods=["POST"])
 @login_required
 def add_booking():
@@ -174,7 +262,7 @@ def add_booking():
     total_cost = PRICE_MATRIX.get(selected_service, 50.00)
     deposit_required = total_cost * 0.20
     deposit_in_cents = int(deposit_required * 100)
-    platform_fee_in_pence = getattr(current_user, 'platform_fee_pence', 100)
+    platform_fee_in_pence = current_user.platform_fee_pence
 
     try:
         checkout_session = stripe.checkout.Session.create(
@@ -217,7 +305,7 @@ def add_booking():
         )
         return redirect(checkout_session.url, code=303)
     except Exception as e:
-        print(f"⚠️ Stripe API Session Creation Failed: {str(e)}")
+        print(f"⚠️️ Stripe API Session Creation Failed: {str(e)}")
         return redirect(url_for("dashboard"))
 
 @app.route("/payment_success")
