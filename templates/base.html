@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartRoute Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center mb-6">
+        <a href="/" class="text-xl font-bold tracking-wide text-blue-400">SmartRoute<span class="text-white">Hub</span></a>
+        {% if current_user.is_authenticated %}
+        <div class="flex space-x-6 text-sm">
+            <a href="/" class="hover:text-blue-400 transition">Dashboard</a>
+            <a href="/" class="hover:text-blue-400 transition">Dashboard</a>
+            <a href="/calendar" class="hover:text-blue-400 transition">Calendar</a>
+            <a href="/financials" class="hover:text-blue-400 transition">Financials</a>
+            <a href="/settings" class="hover:text-blue-400 transition">Settings</a>
+            <a href="/logout" class="text-red-400 hover:text-red-300">Logout</a>
+        </div>
+        {% endif %}
+    </nav>
+    <main class="container mx-auto px-4 flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

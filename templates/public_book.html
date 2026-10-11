@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-lg mx-auto glass p-8 rounded-2xl shadow-2xl mt-10">
+    <h2 class="text-2xl font-bold mb-2">Book Service</h2>
+    <p class="text-gray-400 text-sm mb-6">Provider: {{ owner.business_name }}</p>
+
+    <form method="POST" class="space-y-4">
+        <div>
+            <label class="block text-xs uppercase text-gray-400 mb-1">Your Name</label>
+            <input type="text" name="client_name" required class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs uppercase text-gray-400 mb-1">Email Address</label>
+            <input type="email" name="client_email" required class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs uppercase text-gray-400 mb-1">Phone Number</label>
+            <input type="tel" name="client_phone" required class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs uppercase text-gray-400 mb-1">Destination Postcode</label>
+            <input type="text" name="destination_postcode" required placeholder="e.g. SA1 18A" class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+            <label class="block text-xs uppercase text-gray-400 mb-1">Service Required</label>
+            <select name="service_id" required class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:outline-none focus:border-blue-500">
+                <option value="" disabled selected>Select a service...</option>
+                {% for service in services %}
+                <option value="{{ service.id }}">{{ service.name }} (£{{ "%.2f"|format(service.price) }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs uppercase text-gray-400 mb-1">Preferred Date & Time</label>
+            <input type="datetime-local" name="start_time" required class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:outline-none focus:border-blue-500">
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition duration-200 mt-4">
+            Proceed to Secure Deposit (20% + £1.00 fee)
+        </button>
+    </form>
+</div>
+{% endblock %}

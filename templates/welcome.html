@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartRoute Hub - UK Mobile Service Dispatch & No-Show Protection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between p-6">
+
+    <header class="max-w-6xl mx-auto w-full flex justify-between items-center py-4">
+        <div class="flex items-center space-x-2 text-white font-bold text-xl">
+            <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+                <i class="fa-solid fa-route text-sm"></i>
+            </span>
+            <span>SmartRoute<span class="text-sky-400">Hub</span></span>
+        </div>
+        <div class="space-x-3 text-xs sm:text-sm">
+            <a href="{{ url_for('login') }}" class="text-slate-300 hover:text-white px-3 py-2 rounded-lg font-medium transition">Sign In</a>
+            <a href="{{ url_for('signup') }}" class="bg-sky-600 hover:bg-sky-500 text-white font-semibold px-4 py-2 rounded-xl transition shadow-lg shadow-sky-500/20">Get Started Free</a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto w-full text-center py-12 sm:py-20 space-y-6">
+        <span class="inline-flex items-center gap-2 bg-sky-950/80 border border-sky-800 text-sky-400 px-3.5 py-1.5 rounded-full text-xs font-semibold">
+            <i class="fa-solid fa-shield-halved text-xs"></i> Built Exclusively for UK Mobile Service Pros
+        </span>
+
+        <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
+            Eliminate No-Shows.<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-400">
+                Automate Mobile Route Travel.
+            </span>
+        </h1>
+
+        <p class="text-sm sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            The multi-tenant dispatch engine that requires clients to pay a mandatory 20% non-refundable deposit before locking your schedule, while automatically calculating driving distances and fuel times.
+        </p>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+            <a href="{{ url_for('signup') }}" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-3.5 px-8 rounded-xl text-sm transition shadow-xl shadow-sky-500/25">
+                Launch Your Booking Portal (£0/mo)
+            </a>
+            <a href="{{ url_for('login') }}" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-semibold py-3.5 px-8 rounded-xl text-sm transition">
+                Access Dashboard
+            </a>
+        </div>
+
+        <!-- 3 Feature Highlights -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-12 text-left">
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+                <div class="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm">20% Deposit Guarantee</h3>
+                <p class="text-xs text-slate-400 mt-1">Stripe Checkout locks appointments. No more wasted van trips or last-minute ghosting.</p>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+                <div class="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-location-dot text-xs"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm">UK Postcode Distance</h3>
+                <p class="text-xs text-slate-400 mt-1">Instant drive time calculations based on your base workshop location.</p>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+                <div class="w-8 h-8 rounded-lg bg-indigo-950 border border-indigo-800 text-indigo-400 flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-file-invoice-dollar text-xs"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm">HMRC Tax Mileage Log</h3>
+                <p class="text-xs text-slate-400 mt-1">Every appointment automatically tallies your 45p/mile allowable tax deductions.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="text-center text-xs text-slate-600 py-4">
+        &copy; 2026 SmartRoute Hub. Built for UK Mobile Valeters, Detailers & Trades.
+    </footer>
+
+</body>
+</html>

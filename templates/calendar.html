@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<div class="glass p-6 rounded-2xl shadow-xl mt-6 mb-10">
+    <h2 class="text-2xl font-bold mb-4 text-white">Booking Calendar</h2>
+    <div id="calendar" data-events='{{ events_json | safe }}' class="bg-slate-900 rounded-xl p-4 text-white shadow-inner border border-slate-700"></div>
+</div>
+
+<style>
+    .fc-theme-standard td, .fc-theme-standard th, .fc-theme-standard .fc-scrollgrid { border-color: #334155; }
+    .fc-col-header-cell { background-color: #1e293b; color: #94a3b8; padding: 12px 0; }
+    .fc-daygrid-day-number { color: #f8fafc; text-decoration: none; padding: 8px; }
+    .fc-daygrid-day-number:hover { text-decoration: underline; }
+    .fc .fc-button-primary { background-color: #2563eb; border-color: #2563eb; text-transform: capitalize; }
+    .fc .fc-button-primary:hover { background-color: #1d4ed8; }
+    .fc .fc-button-primary:disabled { background-color: #1e3a8a; }
+    .fc .fc-button-active { background-color: #1e40af !important; }
+    .fc-event { cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 0.85em; }
+    .fc-timegrid-slot-label-cushion { color: #94a3b8; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var events = JSON.parse('{{ events_json | safe }}');
+        
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: events,
+            slotMinTime: '06:00:00',
+            slotMaxTime: '22:00:00',
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                if (info.event.url) {
+                    window.open(info.event.url, '_blank');
+                }
+            },
+            height: 750
+        });
+        
+        calendar.render();
+    });
+</script>
+{% endblock %}
