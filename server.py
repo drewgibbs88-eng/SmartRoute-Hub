@@ -1,4 +1,3 @@
-### --- SmartRoute SaaS Multi-Tenant Server Engine ---
 import os
 import json
 from datetime import datetime
@@ -9,13 +8,13 @@ import stripe
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 
-from models import db, User, Booking, ServiceItem
+from models import db, User, Booking, ServiceItem, BookingStatus
 from webhooks import webhooks_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'dev-key-change-in-production')
 
-# PostgreSQL Compatibility Fix
+# PostgreSQL Compatibility Fix[cite: 3]
 raw_db_url = os.environ.get('DATABASE_URL', 'sqlite:///smartroute.db')
 if raw_db_url.startswith("postgres://"):
     raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
@@ -36,7 +35,6 @@ def load_user(user_id):
 with app.app_context():
     db.create_all()
 
-# Automated Spatial Geocoding Engine
 geolocator = Nominatim(user_agent="smartroute_hub_app")
 
 def calculate_distance_from_addresses(biz_address, client_address):
@@ -60,46 +58,38 @@ def calculate_travel_time(miles):
 @app.route('/')
 @login_required
 def dashboard():
-    bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.start_time.asc()).all()
-    total_revenue = sum(b.total_cost for b in bookings if b.status in ['confirmed', 'arrived'])
-    total_miles = sum(b.distance_miles for b in bookings if b.status in ['confirmed', 'arrived'])
+    bookings = db.session.execute(db.select(Booking).filter_by(user_id=current_user.id).order_by(Booking.start_time.asc())).scalars().all()
+    # Include completed jobs in final ledger tally
+    valid_statuses = [BookingStatus.CONFIRMED, BookingStatus.ARRIVED, BookingStatus.COMPLETED]
+    total_revenue = sum(b.total_cost for b in bookings if b.status in valid_statuses)
+    total_miles = sum(b.distance_miles for b in bookings if b.status in valid_statuses)
+    
     return render_template('index.html', bookings=bookings, revenue=total_revenue, miles=total_miles)
 
 @app.route('/update_booking_status/<int:booking_id>/<new_status>', methods=['POST'])
 @login_required
 def update_booking_status(booking_id, new_status):
-    booking = Booking.query.filter_by(id=booking_id, user_id=current_user.id).first_or_404()
-    if new_status in ['cancelled', 'arrived']:
-        booking.status = new_status
-        db.session.commit()
+    booking = db.session.execute(db.select(Booking).filter_by(id=booking_id, user_id=current_user.id)).scalar_one_or_none()
+    if not booking:
+        flash("Booking not found.", "danger")
+        return redirect(url_for('dashboard'))
+
+    try:
+        status_enum = BookingStatus(new_status)
+        if status_enum in [BookingStatus.CANCELLED, BookingStatus.ARRIVED, BookingStatus.COMPLETED]:
+            booking.status = status_enum
+            db.session.commit()
+            
+            if status_enum == BookingStatus.CANCELLED:
+                flash(f"Booking for {booking.client_name} has been cancelled.", "success")
+            elif status_enum == BookingStatus.ARRIVED:
+                flash(f"{booking.client_name} is signed in and on-site.", "success")
+            elif status_enum == BookingStatus.COMPLETED:
+                flash(f"Job for {booking.client_name} signed off and completed!", "success")
+    except ValueError:
+        flash("Invalid status transition.", "danger")
+        
     return redirect(url_for('dashboard'))
-
-@app.route('/calendar')
-@login_required
-def calendar():
-    bookings = Booking.query.filter_by(user_id=current_user.id).all()
-    events = []
-    for b in bookings:
-        events.append({
-            'id': b.id,
-            'title': f"{b.client_name} ({b.service_name})",
-            'start': b.start_time.isoformat(),
-            'url': f"https://www.google.com/maps/dir/?api=1&destination={b.destination_postcode}",
-            'backgroundColor': '#16a34a' if b.status == 'confirmed' else '#ca8a04',
-            'borderColor': '#16a34a' if b.status == 'confirmed' else '#ca8a04',
-        })
-    return render_template('calendar.html', events_json=json.dumps(events))
-
-@app.route('/financials')
-@login_required
-def financials():
-    confirmed_bookings = Booking.query.filter_by(user_id=current_user.id).filter(Booking.status.in_(['confirmed', 'arrived'])).all()
-    total_gbv = sum(b.total_cost for b in confirmed_bookings)
-    deposits_held = sum(b.deposit_amount for b in confirmed_bookings)
-    total_miles = sum(b.distance_miles for b in confirmed_bookings)
-    hmrc_tax_deduction = float(total_miles) * 0.45
-    
-    return render_template('financials.html', gbv=total_gbv, deposits=deposits_held, miles=total_miles, tax_deduction=hmrc_tax_deduction, bookings=confirmed_bookings)
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -121,22 +111,25 @@ def settings():
             flash('Settings updated successfully.', 'success')
         return redirect(url_for('settings'))
     
-    services = ServiceItem.query.filter_by(user_id=current_user.id).all()
+    services = db.session.execute(db.select(ServiceItem).filter_by(user_id=current_user.id)).scalars().all()
     return render_template('settings.html', services=services)
 
 @app.route('/delete_service/<int:service_id>', methods=['POST'])
 @login_required
 def delete_service(service_id):
-    service = ServiceItem.query.get_or_404(service_id)
-    if service.user_id == current_user.id:
+    service = db.session.get(ServiceItem, service_id)
+    if service and service.user_id == current_user.id:
         db.session.delete(service)
         db.session.commit()
     return redirect(url_for('settings'))
 
 @app.route('/book/<public_id>', methods=['GET', 'POST'])
 def public_book(public_id):
-    owner = User.query.filter_by(id=1).first_or_404()
-    services = ServiceItem.query.filter_by(user_id=owner.id).all()
+    owner = db.session.execute(db.select(User).filter_by(id=1)).scalar_one_or_none()
+    if not owner:
+        return "Business not found.", 404
+        
+    services = db.session.execute(db.select(ServiceItem).filter_by(user_id=owner.id)).scalars().all()
     
     if request.method == 'POST':
         client_name = request.form.get('client_name')
@@ -146,7 +139,7 @@ def public_book(public_id):
         start_time_str = request.form.get('start_time')
         service_id = request.form.get('service_id')
         
-        selected_service = ServiceItem.query.filter_by(id=service_id, user_id=owner.id).first()
+        selected_service = db.session.execute(db.select(ServiceItem).filter_by(id=service_id, user_id=owner.id)).scalar_one_or_none()
         if not selected_service:
             return "Invalid service selected.", 400
             
@@ -174,7 +167,7 @@ def public_book(public_id):
             platform_fee=1.00,
             distance_miles=distance_miles,
             travel_time_mins=travel_time_mins,
-            status='pending'
+            status=BookingStatus.PENDING
         )
         db.session.add(new_booking)
         db.session.commit()
@@ -203,7 +196,9 @@ def public_book(public_id):
 
 @app.route('/booking_success/<public_id>')
 def booking_success(public_id):
-    booking = Booking.query.filter_by(public_id=public_id).first_or_404()
+    booking = db.session.execute(db.select(Booking).filter_by(public_id=public_id)).scalar_one_or_none()
+    if not booking:
+        return "Booking not found.", 404
     return render_template('public_success.html', booking=booking)
 
 @app.route('/signup', methods=['GET', 'POST'])
