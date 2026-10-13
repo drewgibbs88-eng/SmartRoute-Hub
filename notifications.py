@@ -8,13 +8,11 @@ def send_booking_notifications(booking):
         print("Resend API key missing. Skipping email dispatch.")
         return
 
-    # Action URLs for the Business Owner
     encoded_postcode = urllib.parse.quote(booking.destination_postcode)
     maps_url = f"https://www.google.com/maps/dir/?api=1&destination={encoded_postcode}"
     whatsapp_url = f"https://wa.me/{booking.client_phone.replace('+', '').replace(' ', '')}"
     tel_url = f"tel:{booking.client_phone}"
 
-    # Email 1: Dispatch Alert to Business Owner
     owner_html = f"""
     <div style="font-family: sans-serif; padding: 20px; max-width: 600px;">
         <h2 style="color: #2563eb;">New Dispatch Alert</h2>
@@ -37,7 +35,6 @@ def send_booking_notifications(booking):
         "html": owner_html
     })
 
-    # Email 2: Confirmation Receipt to Client
     client_html = f"""
     <div style="font-family: sans-serif; padding: 20px; max-width: 600px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #10b981;">Booking Confirmed</h2>

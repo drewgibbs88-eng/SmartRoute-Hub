@@ -1,7 +1,7 @@
 import os
 import stripe
 from flask import Blueprint, request, jsonify
-from models import db, Booking
+from models import db, Booking, BookingStatus
 from notifications import send_booking_notifications
 
 webhooks_bp = Blueprint('webhooks', __name__)
@@ -21,19 +21,17 @@ def stripe_webhook():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-    # Trigger action only when a client successfully pays their deposit
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         booking_id = session.get('client_reference_id')
 
         if booking_id:
             booking = db.session.query(Booking).filter_all(id=booking_id).with_for_update().first()
-            if booking and booking.status != 'confirmed':
-                booking.status = 'confirmed'
+            if booking and booking.status == BookingStatus.PENDING:
+                booking.status = BookingStatus.CONFIRMED
                 booking.stripe_session_id = session.get('id')
                 db.session.commit()
                 
-                # Execute Resend email pipeline
                 send_booking_notifications(booking)
 
     return jsonify({'status': 'success'}), 200
