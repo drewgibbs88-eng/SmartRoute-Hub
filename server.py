@@ -1,3 +1,4 @@
+### --- SmartRoute SaaS Multi-Tenant Server Engine ---
 import os
 import json
 from datetime import datetime
@@ -5,15 +6,16 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import stripe
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
 
 from models import db, User, Booking, ServiceItem
-from geospatial import calculate_uk_route
 from webhooks import webhooks_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'dev-key-change-in-production')
 
-# PostgreSQL Injection & Compatibility Fix
+# PostgreSQL Compatibility Fix
 raw_db_url = os.environ.get('DATABASE_URL', 'sqlite:///smartroute.db')
 if raw_db_url.startswith("postgres://"):
     raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
@@ -29,17 +31,38 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 with app.app_context():
     db.create_all()
+
+# Automated Spatial Geocoding Engine
+geolocator = Nominatim(user_agent="smartroute_hub_app")
+
+def calculate_distance_from_addresses(biz_address, client_address):
+    try:
+        biz_loc = geolocator.geocode(biz_address)
+        client_loc = geolocator.geocode(client_address)
+        if biz_loc and client_loc:
+            biz_coords = (biz_loc.latitude, biz_loc.longitude)
+            client_coords = (client_loc.latitude, client_loc.longitude)
+            distance_miles = geodesic(biz_coords, client_coords).miles
+            return round(distance_miles, 1)
+    except Exception as e:
+        print(f"⚠️ Geocoding lookup failed: {str(e)}")
+    return 5.0
+
+def calculate_travel_time(miles):
+    average_speed_mph = 30
+    minutes_per_mile = 60 / average_speed_mph
+    return round(miles * minutes_per_mile, 1)
 
 @app.route('/')
 @login_required
 def dashboard():
     bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.start_time.asc()).all()
-    total_revenue = sum(b.total_cost for b in bookings if b.status == 'confirmed' or b.status == 'arrived')
-    total_miles = sum(b.distance_miles for b in bookings if b.status == 'confirmed' or b.status == 'arrived')
+    total_revenue = sum(b.total_cost for b in bookings if b.status in ['confirmed', 'arrived'])
+    total_miles = sum(b.distance_miles for b in bookings if b.status in ['confirmed', 'arrived'])
     return render_template('index.html', bookings=bookings, revenue=total_revenue, miles=total_miles)
 
 @app.route('/update_booking_status/<int:booking_id>/<new_status>', methods=['POST'])
@@ -128,10 +151,11 @@ def public_book(public_id):
             return "Invalid service selected.", 400
             
         start_time = datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M')
-        route = calculate_uk_route(owner.dispatch_postcode, dest_postcode)
+        distance_miles = calculate_distance_from_addresses(owner.dispatch_postcode, dest_postcode)
+        travel_time_mins = calculate_travel_time(distance_miles)
         
         base_cost = float(selected_service.price)
-        travel_cost = float(route['distance_miles']) * float(owner.travel_fee_per_mile)
+        travel_cost = float(distance_miles) * float(owner.travel_fee_per_mile)
         total_cost = base_cost + travel_cost
         deposit_amount = (total_cost * 0.20) + 1.00
         
@@ -148,8 +172,8 @@ def public_book(public_id):
             total_cost=total_cost,
             deposit_amount=deposit_amount,
             platform_fee=1.00,
-            distance_miles=route['distance_miles'],
-            travel_time_mins=route['travel_time_mins'],
+            distance_miles=distance_miles,
+            travel_time_mins=travel_time_mins,
             status='pending'
         )
         db.session.add(new_booking)
@@ -182,31 +206,47 @@ def booking_success(public_id):
     booking = Booking.query.filter_by(public_id=public_id).first_or_404()
     return render_template('public_success.html', booking=booking)
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        email_input = request.form.get('email', '').lower().strip()
+        raw_password = request.form.get('password')
+        business_name = request.form.get('business_name') or request.form.get('name')
+        dispatch_postcode = request.form.get('dispatch_postcode') or 'SW1A 1AA'
+        
+        if not business_name or not email_input or not raw_password:
+            flash('Missing required registration fields.', 'danger')
+            return redirect(url_for('signup'))
+        
+        existing_user = db.session.execute(db.select(User).filter_by(email=email_input)).scalar_one_or_none()
+        if existing_user:
+            flash('This email is already registered. Please log in.', 'danger')
+            return redirect(url_for('login'))
+
+        hashed_pw = generate_password_hash(raw_password)
+        new_user = User(
+            email=email_input,
+            password_hash=hashed_pw,
+            business_name=business_name,
+            dispatch_postcode=dispatch_postcode
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        
+        login_user(new_user)
+        return redirect(url_for('dashboard'))
+    return render_template('signup.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = User.query.filter_by(email=request.form.get('email')).first()
+        email_input = request.form.get('email', '').lower().strip()
+        user = db.session.execute(db.select(User).filter_by(email=email_input)).scalar_one_or_none()
         if user and check_password_hash(user.password_hash, request.form.get('password')):
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('Invalid credentials.', 'danger')
     return render_template('login.html')
-
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        hashed_pw = generate_password_hash(request.form.get('password'))
-        new_user = User(
-            email=request.form.get('email'),
-            password_hash=hashed_pw,
-            business_name=request.form.get('business_name'),
-            dispatch_postcode=request.form.get('dispatch_postcode')
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user)
-        return redirect(url_for('dashboard'))
-    return render_template('signup.html')
 
 @app.route('/logout')
 @login_required
